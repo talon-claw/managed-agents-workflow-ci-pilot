@@ -32,6 +32,6 @@
 
 ## 6. Pilot Validation
 
-- [ ] 6.1 Run the CI pilot on `phase2-ci-unified-gate-pilot-task`
-- [ ] 6.2 Record equivalence evidence between local gate semantics and CI gate semantics
-- [ ] 6.3 Confirm rollback path is disable-workflow plus remove-adapter, with no scheduler or guard expansion
+- [x] 6.1 Run the CI pilot on `phase2-ci-unified-gate-pilot-task`
+- [x] 6.2 Record equivalence evidence between local gate semantics and CI gate semantics
+- [x] 6.3 Confirm rollback path is disable-workflow plus remove-adapter, with no scheduler or guard expansion

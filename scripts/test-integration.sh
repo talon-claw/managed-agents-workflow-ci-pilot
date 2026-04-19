@@ -8,7 +8,7 @@ die() {
 
 require_env() {
     name=$1
-    eval "value=\${$name:-}"
+    value=$(printenv "$name" 2>/dev/null || true)
     [ -n "$value" ] || die "$name is required"
     printf '%s\n' "$value"
 }

@@ -209,15 +209,20 @@ evidence_paths_tmp=$(mktemp)
 
 cleanup() {
     rm -f "$missing_paths_tmp" "$evidence_paths_tmp"
-    if git worktree list --porcelain | sed -n 's/^worktree //p' | grep -Fqx "$ci_worktree"; then
+    if [ "${created_ci_worktree:-0}" -eq 1 ] && git worktree list --porcelain | sed -n 's/^worktree //p' | grep -Fqx "$ci_worktree"; then
         git worktree remove --force "$ci_worktree" >/dev/null 2>&1 || true
     fi
 }
 trap cleanup EXIT HUP INT TERM
 
+created_ci_worktree=0
 auto_recycle_worktree=0
 if [ "${CI:-}" = "1" ] || [ "${GITHUB_ACTIONS:-}" = "true" ]; then
     auto_recycle_worktree=1
+fi
+
+if [ -e "$ci_worktree" ] && ! git worktree list --porcelain | sed -n 's/^worktree //p' | grep -Fqx "$ci_worktree"; then
+    die "ci worktree path already exists and is not a registered git worktree: $ci_worktree"
 fi
 
 if git worktree list --porcelain | sed -n 's/^worktree //p' | grep -Fqx "$ci_worktree"; then
@@ -229,6 +234,7 @@ if git worktree list --porcelain | sed -n 's/^worktree //p' | grep -Fqx "$ci_wor
 fi
 
 git worktree add --detach "$ci_worktree" HEAD >/dev/null
+created_ci_worktree=1
 [ "$(basename "$ci_worktree")" = "$task_id" ] || die "synthetic worktree basename must equal task_id"
 
 mkdir -p "$ci_worktree/scripts" "$ci_worktree/specs/tasks" "$ci_worktree/openspec/changes/$change_id"
@@ -254,13 +260,14 @@ chmod +x \
     "$ci_worktree/scripts/test-integration.sh" \
     "$ci_worktree/scripts/test-e2e.sh"
 
-before_ci_task_sha=$(sha_or_empty "$ci_task_spec")
-before_ci_change_sha=$(sha_or_empty "$ci_change_tasks")
-ci_lease_existed_before=0
-before_ci_lease_sha=
-if [ -e "$ci_lease_path" ]; then
-    ci_lease_existed_before=1
-    before_ci_lease_sha=$(sha_or_empty "$ci_lease_path")
+before_repo_task_sha=$(sha_or_empty "$task_spec_abs")
+before_repo_change_sha=$(sha_or_empty "$change_tasks")
+repo_lease_path="$repo_root/artifacts/tasks/$task_id/active-lease.json"
+repo_lease_existed_before=0
+before_repo_lease_sha=
+if [ -e "$repo_lease_path" ]; then
+    repo_lease_existed_before=1
+    before_repo_lease_sha=$(sha_or_empty "$repo_lease_path")
 fi
 
 preflight_exit=99
@@ -276,13 +283,7 @@ resolve_gate_script() {
         return 0
     fi
 
-    fallback="$repo_root/scripts/$script_name"
-    if [ -x "$fallback" ]; then
-        printf '%s\n' "$fallback"
-        return 0
-    fi
-
-    die "required gate script not found: $script_name"
+    die "required gate script not found in synthetic worktree: $script_name"
 }
 
 worktree_preflight_script=$(resolve_gate_script worktree-preflight.sh)
@@ -360,8 +361,8 @@ if [ -f "$manifest_path" ]; then
     seed_manifest_ok=1
 fi
 
-after_ci_task_sha=$(sha_or_empty "$ci_task_spec")
-after_ci_change_sha=$(sha_or_empty "$ci_change_tasks")
+after_repo_task_sha=$(sha_or_empty "$task_spec_abs")
+after_repo_change_sha=$(sha_or_empty "$change_tasks")
 
 task_status_after=$task_status_before
 if [ -f "$ci_task_spec" ]; then
@@ -370,12 +371,12 @@ if [ -f "$ci_task_spec" ]; then
 fi
 
 read_only_violation=0
-[ "$after_ci_task_sha" = "$before_ci_task_sha" ] || read_only_violation=1
-[ "$after_ci_change_sha" = "$before_ci_change_sha" ] || read_only_violation=1
-if [ "$ci_lease_existed_before" -eq 1 ]; then
-    [ "$(sha_or_empty "$ci_lease_path")" = "$before_ci_lease_sha" ] || read_only_violation=1
+[ "$after_repo_task_sha" = "$before_repo_task_sha" ] || read_only_violation=1
+[ "$after_repo_change_sha" = "$before_repo_change_sha" ] || read_only_violation=1
+if [ "$repo_lease_existed_before" -eq 1 ]; then
+    [ "$(sha_or_empty "$repo_lease_path")" = "$before_repo_lease_sha" ] || read_only_violation=1
 else
-    [ ! -e "$ci_lease_path" ] || read_only_violation=1
+    [ ! -e "$repo_lease_path" ] || read_only_violation=1
 fi
 
 required_paths="
