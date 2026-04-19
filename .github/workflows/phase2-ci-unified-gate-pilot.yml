@@ -1,0 +1,68 @@
+name: phase2-ci-unified-gate-pilot
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unified-gate-pilot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Run CI unified gate pilot
+        id: pilot
+        run: |
+          chmod +x scripts/ci-unified-gate-pilot.sh
+          scripts/ci-unified-gate-pilot.sh \
+            --task specs/tasks/phase2-ci-unified-gate-pilot-task.md \
+            --expected-change phase2-ci-unified-gate-pilot \
+            --base-ref main
+
+      - name: Upload pilot artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-ci-unified-gate-pilot-artifacts
+          path: |
+            artifacts/tasks/phase2-ci-unified-gate-pilot-task/*/search-plan.md
+            artifacts/tasks/phase2-ci-unified-gate-pilot-task/*/verify.txt
+            artifacts/tasks/phase2-ci-unified-gate-pilot-task/*/review.txt
+            artifacts/tasks/phase2-ci-unified-gate-pilot-task/*/acceptance.txt
+            artifacts/tasks/phase2-ci-unified-gate-pilot-task/*/manifest.json
+          if-no-files-found: error
+
+      - name: Enforce manifest result
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import glob
+          import json
+          import sys
+
+          matches = sorted(glob.glob('artifacts/tasks/phase2-ci-unified-gate-pilot-task/*/manifest.json'))
+          if not matches:
+              raise SystemExit('missing manifest.json for CI unified gate pilot')
+
+          manifest_path = matches[-1]
+          with open(manifest_path, 'r', encoding='utf-8') as fh:
+              manifest = json.load(fh)
+
+          required = {
+              'verified', 'failed-validation', 'awaiting-review',
+              'policy-blocked', 'spec-mismatch', 'transient', 'requires-human'
+          }
+          result_state = manifest.get('result_state')
+          if result_state not in required:
+              raise SystemExit(f'invalid result_state: {result_state}')
+          if result_state != 'verified':
+              raise SystemExit(f'pilot did not verify: {result_state}')
+          PY

@@ -1,0 +1,32 @@
+schema: spec-driven
+
+context: |
+  Repository baseline branch: main
+  Node.js baseline: .nvmrc pins v22.22.0
+  After the Phase 0 bootstrap freeze, docs/drafts/*.md are historical inputs only.
+  Active specification work must move to openspec/changes/* and execution task specs under specs/tasks/.
+
+rules:
+  proposal:
+    - Use main as the default base branch unless a task spec says otherwise.
+  tasks:
+    - Do not treat docs/drafts/*.md as an active specification source after the bootstrap freeze.
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Example:
+#   context: |
+#     Tech stack: TypeScript, React, Node.js
+#     We use conventional commits
+#     Domain: e-commerce platform
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
