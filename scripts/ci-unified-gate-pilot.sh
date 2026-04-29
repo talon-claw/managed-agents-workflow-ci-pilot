@@ -25,6 +25,22 @@ abs_path() {
     python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$1"
 }
 
+resolve_base_ref() {
+    candidate=$1
+    if git rev-parse --verify "$candidate^{commit}" >/dev/null 2>&1; then
+        printf '%s\n' "$candidate"
+        return 0
+    fi
+
+    remote_candidate="origin/$candidate"
+    if git rev-parse --verify "$remote_candidate^{commit}" >/dev/null 2>&1; then
+        printf '%s\n' "$remote_candidate"
+        return 0
+    fi
+
+    die "base_ref is not a valid commit or branch: $candidate"
+}
+
 validate_segment() {
     value=$1
     name=$2
@@ -163,9 +179,9 @@ else
     base_ref=$(field_value base_ref)
     [ -n "$base_ref" ] || base_ref=main
 fi
+resolved_base_ref=$(resolve_base_ref "$base_ref")
 
-git rev-parse --verify "$base_ref^{commit}" >/dev/null 2>&1 || die "base_ref is not a valid commit or branch: $base_ref"
-git merge-base --is-ancestor "$base_ref" HEAD >/dev/null 2>&1 || die "HEAD must descend from base_ref"
+git merge-base --is-ancestor "$resolved_base_ref" HEAD >/dev/null 2>&1 || die "HEAD must descend from base_ref"
 
 if [ -n "$run_id_override" ]; then
     run_id=$run_id_override
