@@ -11,5 +11,8 @@
     ],
     "defaultMode": "default"
   },
+  "env": {
+    "ECC_DISABLED_HOOKS": "pre:edit-write:gateguard-fact-force"
+  },
   "skipDangerousModePermissionPrompt": true
 }

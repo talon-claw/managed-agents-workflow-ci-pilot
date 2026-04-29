@@ -1,0 +1,40 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs / temp
+*.log
+.tmp/
+tmp/
+.temp/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Node
+node_modules/
+coverage/
+dist/
+.next/
+
+# Local Claude state
+.claude/settings.local.json
+.claude/plan/
+.claude/plan-legacy-*.md
+.claude/worktrees/
+
+# Generated workflow/runtime artifacts
+artifacts/
