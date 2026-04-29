@@ -1,5 +1,7 @@
 # VPS 持续工作直到验收工作流 — Specs
 
+> Freeze status (2026-04-17): this draft is a bootstrap record only. After Phase 0, active specification work must move to `openspec/changes/*` and `specs/tasks/*`.
+
 ## 1. 目标
 
 把当前仓库作为业务仓库，建立一套可在 VPS 上长期运行的工程代理骨架，满足以下目标：
@@ -94,10 +96,10 @@
 在 `/ccg:spec-impl` 之前，仓库必须完成：
 
 - Git 初始化
-- Node.js 版本满足 OpenSpec CLI 要求
+- Node.js 版本满足 OpenSpec CLI 要求（当前基线固定为 `.nvmrc` 中的 `v22.22.0`）
 - OpenSpec CLI 已安装
-- `openspec init --tools none --profile core` 已完成或等效最小初始化已完成
-- 已明确 `docs/drafts/*.md` 的迁移或冻结策略，避免双重真相
+- `openspec init --tools none --profile core` 已完成或等效最小初始化已完成（当前仓库保留 `openspec/changes/archive/` 与 `openspec/specs/` 最小结构）
+- 已明确 `docs/drafts/*.md` 的迁移或冻结策略，避免双重真相；本批草稿在 Phase 0 后冻结为历史输入
 
 ### FR-3 Search 不可跳过
 
@@ -270,4 +272,3 @@ MVP 中 publish 只表示：
 6. `acceptance.sh` 会在缺少证据或检查失败时 fail closed
 7. `artifacts/tasks/<task_id>/<run_id>/` 中有机器可复核证据
 8. CI 与本地运行相同脚本并得出一致结论
-

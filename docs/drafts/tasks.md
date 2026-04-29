@@ -1,14 +1,16 @@
 # VPS 持续工作直到验收工作流 — Tasks
 
+> Freeze status (2026-04-17): this checklist is frozen as a bootstrap execution record. Active change and task tracking must move to `openspec/changes/*` and `specs/tasks/*`.
+
 ## Phase 0 — OpenSpec Bootstrap Preconditions
 
-- [ ] 0.1 确认当前仓库已初始化为 Git 仓库，并可执行 `git worktree`
-- [ ] 0.2 确认默认基线分支名称，并写入设计约定
-- [ ] 0.3 确认本地环境 Node.js 版本满足 OpenSpec CLI 要求
-- [ ] 0.4 安装 OpenSpec CLI
-- [ ] 0.5 以 `openspec init --tools none --profile core` 完成最小初始化
-- [ ] 0.6 明确 `docs/drafts/*.md` 的迁移或冻结策略，避免双重真相
-- [ ] 0.7 确认本地与 CI 都能调用 repo 内 shell 脚本
+- [x] 0.1 确认当前仓库已初始化为 Git 仓库，并可执行 `git worktree`
+- [x] 0.2 确认默认基线分支名称，并写入设计约定
+- [x] 0.3 确认本地环境 Node.js 版本满足 OpenSpec CLI 要求
+- [x] 0.4 安装 OpenSpec CLI
+- [x] 0.5 以 `openspec init --tools none --profile core` 完成最小初始化
+- [x] 0.6 明确 `docs/drafts/*.md` 的迁移或冻结策略，避免双重真相
+- [x] 0.7 确认本地与 CI 都能调用 repo 内 shell 脚本
 
 ## Phase 1 — Skeleton
 

@@ -1,5 +1,7 @@
 # VPS 持续工作直到验收工作流 — Design
 
+> Freeze status (2026-04-17): this draft is frozen as the Phase 0 bootstrap design record. New design work must move to `openspec/changes/*`.
+
 ## 1. 设计目标
 
 把当前仓库设计成一个“轻量控制平面”，并在其上叠加 OpenSpec 规范层：
@@ -140,12 +142,13 @@ docs/
 
 先补运行前置：
 
-- 初始化 Git 仓库
-- 确认默认基线分支
-- 确认 Node.js 版本满足 OpenSpec CLI 要求
-- 安装 OpenSpec CLI
-- 执行 `openspec init --tools none --profile core`
-- 明确 `docs/drafts/` 的迁移或冻结策略
+- 初始化 Git 仓库，并确认 `git worktree` 可用
+- 确认默认基线分支为 `main`
+- 确认 Node.js 版本满足 OpenSpec CLI 要求；当前基线固定为 `.nvmrc` 中的 `v22.22.0`
+- 确认 OpenSpec CLI 已安装；当前验证版本为 `1.3.0`
+- 执行 `openspec init --tools none --profile core`，并保留 `openspec/changes/archive/` 与 `openspec/specs/` 作为最小初始化结构
+- 冻结 `docs/drafts/` 为 bootstrap 历史输入，后续活跃规范入口切换到 `openspec/changes/*` 与 `specs/tasks/*`
+- 提供一个最小 CI 工作流，仅验证仓库内 shell 入口可被 CI 调用
 
 ### Phase 1 — Skeleton
 
