@@ -1,0 +1,12 @@
+# Watched config pathspecs for scripts/auto-push-config.sh
+# One git pathspec per line. Blank lines and comments are ignored.
+.config-watch-pathspecs
+scripts/auto-push-config.sh
+.claude/settings.json
+openspec/config.yaml
+.gitignore
+AGENTS.md
+CLAUDE.md
+.nvmrc
+:(glob).github/workflows/*.yml
+:(glob).github/workflows/*.yaml
