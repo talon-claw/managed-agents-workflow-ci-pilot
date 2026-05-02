@@ -1,7 +1,9 @@
-# Watched config pathspecs for scripts/auto-push-config.sh
+# Watched config pathspecs for the repo-managed config automation flow.
 # One git pathspec per line. Blank lines and comments are ignored.
-# auto-push smoke test marker
 .config-watch-pathspecs
+.githooks/post-commit
+scripts/review-watched-config-change.sh
+scripts/webhook-push-head.sh
 scripts/auto-push-config.sh
 .claude/settings.json
 openspec/config.yaml

@@ -1,0 +1,68 @@
+#!/usr/bin/env sh
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null || exit 0)
+cd "$repo_root"
+
+watch_file="$repo_root/.config-watch-pathspecs"
+[ -f "$watch_file" ] || exit 0
+
+set --
+while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+        ''|'#'*)
+            continue
+            ;;
+        *)
+            set -- "$@" "$line"
+            ;;
+    esac
+done < "$watch_file"
+
+[ "$#" -gt 0 ] || exit 0
+
+changed_files=$(git diff-tree --no-commit-id --name-only -r HEAD -- "$@")
+[ -n "$changed_files" ] || exit 0
+
+if [ -f "$HOME/.hermes/.env" ]; then
+    set -a
+    # shellcheck disable=SC1090
+    . "$HOME/.hermes/.env"
+    set +a
+fi
+
+: "${WEBHOOK_SECRET:=}"
+: "${WEBHOOK_PORT:=8644}"
+[ -n "$WEBHOOK_SECRET" ] || {
+    printf '%s\n' "post-commit webhook skipped: WEBHOOK_SECRET is not configured" >&2
+    exit 0
+}
+
+branch=$(git rev-parse --abbrev-ref HEAD)
+head_sha=$(git rev-parse HEAD)
+payload=$(python3 - "$repo_root" "$branch" "$head_sha" <<'PY'
+import json, subprocess, sys
+repo_path, branch, head_sha = sys.argv[1:4]
+files = subprocess.check_output(
+    ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
+    text=True,
+).splitlines()
+payload = {
+    "event_type": "managed-agents.config.changed",
+    "repo_path": repo_path,
+    "branch": branch,
+    "head_sha": head_sha,
+    "changed_files": files,
+}
+print(json.dumps(payload, separators=(",", ":")))
+PY
+)
+signature=$(printf '%s' "$payload" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" -binary | xxd -p -c 256)
+
+curl -fsS \
+    -H "Content-Type: application/json" \
+    -H "X-Webhook-Signature: $signature" \
+    -d "$payload" \
+    "http://127.0.0.1:${WEBHOOK_PORT}/webhooks/managed-agents-config-autopush" >/dev/null
+
+printf '%s\n' "post-commit webhook dispatched for $head_sha" >&2
