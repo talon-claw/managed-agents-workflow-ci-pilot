@@ -70,13 +70,11 @@ fi
 printf '%s\n' "reviewing watched config changes in $base_ref..$head_ref"
 printf '%s\n' "$changed_files"
 
-# Basic patch hygiene.
-git diff --check "$base_ref" "$head_ref"
+# Basic patch hygiene limited to the watched paths in this event.
+git diff --check "$base_ref" "$head_ref" -- "$@"
 
-changed_any=0
 printf '%s\n' "$changed_files" | while IFS= read -r file; do
     [ -n "$file" ] || continue
-    changed_any=1
     case "$file" in
         *.json)
             python3 -m json.tool "$file" >/dev/null
