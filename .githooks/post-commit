@@ -40,11 +40,13 @@ fi
 
 branch=$(git rev-parse --abbrev-ref HEAD)
 head_sha=$(git rev-parse HEAD)
-payload=$(python3 - "$repo_root" "$branch" "$head_sha" <<'PY'
+payload=$(python3 - "$repo_root" "$branch" "$head_sha" "$watch_file" <<'PY'
 import json, subprocess, sys
-repo_path, branch, head_sha = sys.argv[1:4]
+repo_path, branch, head_sha, watch_file = sys.argv[1:5]
+with open(watch_file, 'r', encoding='utf-8') as fh:
+    pathspecs = [line.strip() for line in fh if line.strip() and not line.lstrip().startswith('#')]
 files = subprocess.check_output(
-    ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
+    ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD", "--", *pathspecs],
     text=True,
 ).splitlines()
 payload = {
